@@ -65,20 +65,20 @@ void program_run(void) {
 
 	// don't start running a programming if the program is being written by an external source
 	// or if we are in program stop mode
-	if (program_state != PROGRAM_RUN) goto PROGRAM_RUN_EXIT;
+	if (program_state != PROGRAM_RUN) goto PROGRAM_RUN_EXIT;	// exit
 
 	// after each eeprom read, we check to see if the system has left program run state
 	// if so, the eeprom read might be invalid so we need to exit
 
 	steps = eeprom_read_word((uint16_t *)location);
-	if (program_state != PROGRAM_RUN) goto PROGRAM_RUN_EXIT;
+	if (program_state != PROGRAM_RUN) goto PROGRAM_RUN_EXIT;	// exit
 	location += sizeof(uint16_t);
 #ifdef PROGRAM_RUN_DEBUG
 	printf_P(PSTR("program has %d steps\n"), steps);
 #endif
 	for (i = 0; i < steps; ++i) {
 		eeprom_read_block(&rgb, (void *)location, 3 * sizeof(uint8_t));
-		if (program_state != PROGRAM_RUN) goto PROGRAM_RUN_EXIT;
+		if (program_state != PROGRAM_RUN) goto PROGRAM_RUN_EXIT; // exit
 		location += 3 * sizeof(uint8_t);
 #ifdef PROGRAM_RUN_DEBUG
 		printf_P(PSTR("step %d:\t%d\t%d\t%d\n"), i, rgb[0], rgb[1], rgb[2]);
@@ -86,7 +86,7 @@ void program_run(void) {
 		rgb_set(rgb[0], rgb[1], rgb[2]);
 
 		delay_in_ms = eeprom_read_word((uint16_t *)location);
-		if (program_state != PROGRAM_RUN) goto PROGRAM_RUN_EXIT;
+		if (program_state != PROGRAM_RUN) goto PROGRAM_RUN_EXIT; // exit
 		location += sizeof(uint16_t);
 #ifdef PROGRAM_RUN_DEBUG
 		printf_P(PSTR("step %d delay:\t%d\n"), i, delay_in_ms);
@@ -105,4 +105,23 @@ PROGRAM_RUN_EXIT:
 #ifdef PROGRAM_RUN_DEBUG
 	printf_P(PSTR("program complete\n"));
 #endif
+}
+
+void program_write_steps(uint16_t steps) {
+	if (program_state == PROGRAM_PROGRAMMING) {
+		uint16_t location = PROGRAM_START;
+		printf_P(PSTR("program steps = %" PRIu16 "\n"), steps);
+		eeprom_update_word((uint16_t *)location, steps);
+	} else
+		printf_P(PSTR("unable to write steps: not in programming mode\n"));
+}
+
+void program_write_step(uint16_t step, uint8_t &rgb[3], uint16_t delay_is_ms) {
+	uint16_t location = PROGRAM_STEP_LOCATION(step);
+	eeprom_update_block(rgb, (void *)location, 3 * sizeof(uint8_t));
+	location += 3 * sizeof(uint8_t);
+	eeprom_update_word((uint16_t *)location, delay_in_ms);
+	printf_P(PSTR("program step  = %" PRIu16 "\n"), step);
+	printf_P(PSTR("program rgb   = %u\t%u\t%u\n"), rgb[0], rgb[1], rgb[2]);
+	printf_P(PSTR("program delay = %" PRIu16 "\n"), delay_in_ms);
 }
