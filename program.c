@@ -116,7 +116,7 @@ void program_write_steps(uint16_t steps) {
 		printf_P(PSTR("unable to write steps: not in programming mode\n"));
 }
 
-void program_write_step(uint16_t step, uint8_t &rgb[3], uint16_t delay_is_ms) {
+void program_write_step(uint16_t step, uint8_t rgb[3], uint16_t delay_in_ms) {
 	uint16_t location = PROGRAM_STEP_LOCATION(step);
 	eeprom_update_block(rgb, (void *)location, 3 * sizeof(uint8_t));
 	location += 3 * sizeof(uint8_t);
