@@ -1,12 +1,10 @@
 ## deployment specific defines
 DEVICE     = atmega328
-#CLOCK      = 16000000L
-#CLOCK      = 20000000L
 # for internal oscillator
 CLOCK      = 8000000L
 
 ## compile time defines
-USART_BAUD=115200
+USART_BAUD=38400
 
 ## sources
 SRCS_led_strip = led_strip.c
