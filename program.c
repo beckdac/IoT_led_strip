@@ -117,6 +117,8 @@ PROGRAM_RUN_EXIT:
 
 #define PROGRAM_COMMAND_RESET "RESET"
 #define PROGRAM_COMMAND_RESET_LENGTH 5
+#define PROGRAM_COMMAND_FACTORY "FACTORY"
+#define PROGRAM_COMMAND_FACTORY_LENGTH 7
 #define PROGRAM_COMMAND_STOP "STOP"
 #define PROGRAM_COMMAND_STOP_LENGTH 4
 #define PROGRAM_COMMAND_PROGRAMMING_MODE "PROGRAM"
@@ -147,6 +149,12 @@ void program_command_available(void) {
 	if (strncmp(usart_command, PROGRAM_COMMAND_RESET, PROGRAM_COMMAND_RESET_LENGTH) == 0) {
 		printf_P(PSTR("OK\n"));
 		// call the watchdog timer to reset in 15ms
+		wdt_enable(WDTO_15MS);
+		while (1) {};
+	} else if (strncmp(usart_command, PROGRAM_COMMAND_FACTORY, PROGRAM_COMMAND_FACTORY_LENGTH) == 0) {
+		printf_P(PSTR("resetting to default program\n"));
+		program_setup_default();
+		printf_P(PSTR("OK\n"));
 		wdt_enable(WDTO_15MS);
 		while (1) {};
 	} else if (strncmp(usart_command, PROGRAM_COMMAND_STOP, PROGRAM_COMMAND_STOP_LENGTH) == 0) {
