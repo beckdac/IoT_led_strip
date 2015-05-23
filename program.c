@@ -189,7 +189,6 @@ uint8_t program_process_command_and_invalidate(void) {
 			buf = &usart_command[PROGRAM_COMMAND_STEP_LENGTH];
 			uint8_t rgb[3], parse_error = 0;
 			uint16_t step, delay_in_ms;
-			buf = endptr;
 			step = strtoul(buf, &endptr, 10);
 			if (*buf == endptr) {
 				printf_P(PSTR("unable to parse STEP value\n"));
