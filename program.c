@@ -66,7 +66,7 @@ void program_setup_default(void) {
 	program_state = PROGRAM_RUN;
 }
 
-#define program_check_state() if (usart_command_available) if (program_process_command_and_invalidate()) goto PROGRAM_RUN_EXIT; if (program_state != PROGRAM_RUN) goto PROGRAM_RUN_EXIT; 
+#define program_check_state() if (usart_command_available) if (program_process_command_and_invalidate()) goto PROGRAM_RUN_EXIT; if (program_state != PROGRAM_RUN) goto PROGRAM_RUN_EXIT; if (icp_hz > program_icp_hz_enable) { rgb_set(0, 0, 0); goto PROGRAM_RUN_EXIT; }
 
 #define PROGRAM_RUN_DEBUG
 #undef PROGRAM_RUN_DEBUG
@@ -74,12 +74,6 @@ void program_run(void) {
 	uint16_t location = PROGRAM_START;
 	uint16_t i, steps, delay_in_ms;
 	uint8_t rgb[3];
-
-	// don't run the program if the light is too bright
-	if (icp_hz > program_icp_hz_enable) {
-		rgb_set(0, 0, 0);
-		goto PROGRAM_RUN_EXIT;
-	}
 
 	// don't start running a programming if the program is being written by an external source
 	// or if we are in program stop mode
