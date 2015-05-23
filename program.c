@@ -62,7 +62,7 @@ void program_setup_default(void) {
 	program_state = PROGRAM_RUN;
 }
 
-#define program_check_state() if (usart_command_available) program_command_available(); if (program_state != PROGRAM_RUN) goto PROGRAM_RUN_EXIT; 
+#define program_check_state() if (usart_command_available) if (program_process_command_and_invalidate()) goto PROGRAM_RUN_EXIT; if (program_state != PROGRAM_RUN) goto PROGRAM_RUN_EXIT; 
 
 #define PROGRAM_RUN_DEBUG
 #undef PROGRAM_RUN_DEBUG
@@ -138,8 +138,9 @@ PROGRAM_RUN_EXIT:
 //#define PROGRAM_COMMAND_
 //#define PROGRAM_COMMAND__LENGTH
 
-void program_command_available(void) {
+uint8_t program_process_command_and_invalidate(void) {
 	char *buf = usart_command, *endptr = NULL;
+	uint8_t invalidate_program = 0;
 
 	if (buf[0] == '\0' || buf[0] == '\n' || buf[0] == '\r' || buf[0] == ' ' || buf[0] == '\t') {
 		usart_command_available = 0;
@@ -155,14 +156,15 @@ void program_command_available(void) {
 		printf_P(PSTR("resetting to default program\n"));
 		program_setup_default();
 		printf_P(PSTR("OK\n"));
-		wdt_enable(WDTO_15MS);
-		while (1) {};
+		invalidate_program = 1;
 	} else if (strncmp(usart_command, PROGRAM_COMMAND_STOP, PROGRAM_COMMAND_STOP_LENGTH) == 0) {
 		program_state = PROGRAM_STOP;
+		invalidate_program = 1;
 		printf_P(PSTR("OK\n"));
 	} else if (strncmp(usart_command, PROGRAM_COMMAND_PROGRAMMING_MODE, PROGRAM_COMMAND_PROGRAMMING_MODE_LENGTH) == 0) {
 		program_state = PROGRAM_PROGRAMMING;
 		rgb_set(0, 0, 0);
+		invalidate_program = 1;
 		printf_P(PSTR("OK\n"));
 	} else if (strncmp(usart_command, PROGRAM_COMMAND_RUN, PROGRAM_COMMAND_RUN_LENGTH) == 0) {
 		program_state = PROGRAM_RUN;
@@ -240,6 +242,7 @@ void program_command_available(void) {
 		if (program_state != PROGRAM_PROGRAMMING) {
 			program_state = PROGRAM_STOP;
 			rgb_set(0, 0, 0);
+			invalidate_program = 1;
 			printf_P(PSTR("OK\n"));
 		} else {
 			printf_P(PSTR("not in programming mode!\nERROR\n"));
@@ -267,6 +270,7 @@ void program_command_available(void) {
 			if (!parse_error) {
 				program_state = PROGRAM_STOP;
 				rgb_set(rgb[0], rgb[1], rgb[2]);
+				invalidate_program = 1;
 				printf_P(PSTR("OK\n"));
 			} else {
 				printf_P(PSTR("ERROR\n"));
@@ -278,6 +282,7 @@ void program_command_available(void) {
 		if (program_state != PROGRAM_PROGRAMMING) {
 			program_state = PROGRAM_STOP;
 			rgb_set(0, 0, 0);
+			invalidate_program = 1;
 			printf_P(PSTR("OK\n"));
 		} else {
 		printf_P(PSTR("currently in programming mode!\nERROR\n"));
@@ -291,4 +296,6 @@ void program_command_available(void) {
 // } else if (strncmp(usart_command, PROGRAM_COMMAND_, PROGRAM_COMMAND__LENGTH) == 0) {
 
 	usart_command_available = 0;
+
+	return invalidate_program;
 }
