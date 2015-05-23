@@ -1,0 +1,19 @@
+#!/bin/bash
+
+if [ "$#" -ne 2 ]
+then
+	echo "usage: $0 <host> <program filename>"
+	exit 1
+fi
+
+host=$1
+program=$2
+
+if [ ! -e $program ]
+then
+	echo "program file $program does not exist"
+	exit 1
+fi
+
+STEPS="grep ^STEP $program | wc -l | awk '{ print $1 }'`
+echo $STEPS
