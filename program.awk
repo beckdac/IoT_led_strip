@@ -2,7 +2,8 @@ BEGIN {
 	printf("set timeout 5\n\n");
 	printf("spawn telnet %s\n\n", host);
 	printf("expect \"'^]'.\"\n");
-	printf("send \"\\n\"\n");
+	printf("send \"NOOP\\n\"\n");
+	printf("expect \"ERROR\"\n");
 	printf("send \"PROGRAM\\n\"\n");
 	printf("expect \"OK\"\n");
 	printf("send \"LENGTH %d\\n\"\n", program_length);
