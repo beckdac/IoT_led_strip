@@ -24,4 +24,7 @@ send "+++AT GPIO2 2 100\r"
 expect "RESET"
 EOF
 
-avrdude -v -v -c avrisp -p m328p -P net:$host:23 -F -U flash:w:$hex:i
+programmer=stk500
+programmer=avrisp
+echo avrdude -v -v -c $programmer -p m328p -P net:$host:23 -F -U flash:w:$hex:i
+avrdude -v -v -c $programmer -p m328p -P net:$host:23 -F -U flash:w:$hex:i

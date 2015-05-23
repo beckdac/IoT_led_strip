@@ -57,7 +57,7 @@ Set with
 
 Burn optiboot bootloader with:
    file=~/optiboot/optiboot/bootloaders/optiboot/optiboot_atmega328_384_8.hex
-   sudo avrdude -c ft232u -p m328p -P ft0 -F -D -U flash:w:${file}:i DONE
+   sudo avrdude -c ft232u -p m328p -P ft0 -F -e -U flash:w:${file}:i DONE
 
 Send application to chip:
    ip=192.168.1.23 # replace with your own
