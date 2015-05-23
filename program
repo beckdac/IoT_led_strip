@@ -15,5 +15,6 @@ then
 	exit 1
 fi
 
-STEPS="grep ^STEP $program | wc -l | awk '{ print $1 }'`
-echo $STEPS
+STEPS=`grep ^STEP $program | wc -l | awk '{ print $1 }'`
+
+awk -v host=$host -v program_length=$STEPS -f $0.awk $program
