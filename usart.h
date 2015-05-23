@@ -8,6 +8,7 @@
 typedef struct usart {
 	circbuf_t TX_buffer;
 	circbuf_t RX_buffer;
+	uint8_t command_overflows;
 } usart_t;
 	
 void usart_init(uint16_t ubrr);

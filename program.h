@@ -12,5 +12,6 @@ typedef enum { PROGRAM_STOP = 0, PROGRAM_RUN, PROGRAM_PROGRAMMING } program_stat
 void program_init(void);
 void program_setup_default(void);
 void program_run(void);
+void program_command_available(void);
 
 #endif /* _PROGRAM_H_ */

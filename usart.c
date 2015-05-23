@@ -1,6 +1,7 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "global.h"
 #include "usart.h"
@@ -10,7 +11,12 @@ FILE usart_input = FDEV_SETUP_STREAM(NULL, usart_getchar, _FDEV_SETUP_READ);
 
 usart_t usart;
 
+volatile uint8_t usart_command_available = 1;
+volatile char usart_command[BUFFER_SIZE];
+
 void usart_init(uint16_t ubrr) {
+	memset(&usart, 0, sizeof(usart_t));
+
 	circbuf_init(&usart.TX_buffer);
 	circbuf_init(&usart.RX_buffer);
 
@@ -140,6 +146,25 @@ ISR(USART_RX_vect) {
 	if (usart.RX_buffer.length < BUFFER_SIZE) {
 		usart.RX_buffer.data[(usart.RX_buffer.idx + usart.RX_buffer.length) % BUFFER_SIZE] = data;
 		usart.RX_buffer.length++;
+
+		if (data == '\n') {
+			if (usart_command_available) {
+				usart.command_overflows++;
+			} else {
+				uint8_t i;
+
+				usart_command_available = 1;
+
+				for (i = 0; i < usart.RX_buffer.length - 1; ++i) {
+					usart_command[i] = usart.RX_buffer.data[usart.RX_buffer.idx++];
+					if (usart.RX_buffer.idx >= BUFFER_SIZE)
+						usart.RX_buffer.idx -= BUFFER_SIZE;
+				}
+				usart_command[i] = '\0';
+				usart.RX_buffer.length = 0;
+				usart.RX_buffer.idx = 0;
+			}
+		}
 	} else {
 		usart.RX_buffer.overflows++;
 	}
