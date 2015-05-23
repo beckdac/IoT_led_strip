@@ -1,5 +1,5 @@
 BEGIN {
-	printf("set timeout 20\n\n");
+	printf("set timeout 5\n\n");
 	printf("spawn telnet %s\n\n", host);
 	printf("expect \"'^]'.\"\n");
 	printf("send \"\\n\"\n");

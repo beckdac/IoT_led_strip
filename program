@@ -3,6 +3,7 @@
 if [ "$#" -ne 2 ]
 then
 	echo "usage: $0 <host> <program filename>"
+	echo "example: $0 led_strip programs/red_white_blue.prg"
 	exit 1
 fi
 
@@ -17,4 +18,4 @@ fi
 
 STEPS=`grep ^STEP $program | wc -l | awk '{ print $1 }'`
 
-awk -v host=$host -v program_length=$STEPS -f $0.awk $program
+awk -v host=$host -v program_length=$STEPS -f $0.awk $program | /usr/bin/expect
