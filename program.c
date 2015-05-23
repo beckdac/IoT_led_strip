@@ -22,6 +22,8 @@ volatile program_state_e program_state;
 extern volatile uint8_t usart_command_available;
 extern volatile char usart_command[BUFFER_SIZE];
 
+extern volatile uint16_t icp_hz, icp_events;
+
 void program_init(void) {
 	uint16_t preamble;
 
@@ -146,6 +148,8 @@ void program_write_step(uint16_t step, uint8_t rgb[3], uint16_t delay_in_ms) {
 #define PROGRAM_COMMAND_RGB_LENGTH 3
 #define PROGRAM_COMMAND_OFF "OFF"
 #define PROGRAM_COMMAND_OFF_LENGTH 3
+#define PROGRAM_COMMAND_LHZ "LHZ"
+#define PROGRAM_COMMAND_LHZ_LENGTH 3
 //#define PROGRAM_COMMAND_
 //#define PROGRAM_COMMAND__LENGTH
 
@@ -179,11 +183,15 @@ void program_command_available(void) {
 		}
 	} else if (strncmp(usart_command, PROGRAM_COMMAND_OFF, PROGRAM_COMMAND_OFF_LENGTH) == 0) {
 		if (program_state != PROGRAM_PROGRAMMING) {
+			program_state = PROGRAM_STOP;
 			rgb_set(0, 0, 0);
 			printf_P(PSTR("OK\n"));
 		} else {
 		printf_P(PSTR("currently in programming mode!\nERROR\n"));
 		}
+	} else if (strncmp(usart_command, PROGRAM_COMMAND_LHZ, PROGRAM_COMMAND_LHZ_LENGTH) == 0) {
+		printf_P(PSTR("light frequency:\t%d\n"), icp_hz);
+		printf_P(PSTR("OK\n"));
 	} else if (isspace(usart_command)) {
 		// noop
 	} else {
