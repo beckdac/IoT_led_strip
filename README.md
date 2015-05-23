@@ -56,7 +56,7 @@ Then run
    make atmega328_384_8
 ```
 
-Only use ft232u if you have the FTDI cable configured as I do.  You probably want ft232r.  Here is the config for the ft232u which goes in your avrdude.conf (assumes avrdude 6.1):
+Only use ft232u in the below avrdude examples for fuses and bootloader burning if you have the FTDI cable configured as I do (derived from this many year old post http://exmrclean.blogspot.com/2009/05/burning-avr-boot-loader-with-usb-ttl.html).  You probably want ft232r.  Here is the config for the ft232u which goes in your avrdude.conf (assumes avrdude 6.1) if you are still using the old school ft232u pin configuration:
 
 ```
 programmer
