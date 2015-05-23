@@ -145,6 +145,10 @@ PROGRAM_RUN_EXIT:
 #define PROGRAM_COMMAND_OFF_LENGTH 3
 #define PROGRAM_COMMAND_LHZ "LHZ"
 #define PROGRAM_COMMAND_LHZ_LENGTH 3
+#define PROGRAM_COMMAND_LHZEN "LHZEN"
+#define PROGRAM_COMMAND_LHZEN_LENGTH 5
+#define PROGRAM_COMMAND_DUMP "DUMP"
+#define PROGRAM_COMMAND_DUMP_LENGTH 4
 //#define PROGRAM_COMMAND_
 //#define PROGRAM_COMMAND__LENGTH
 
@@ -152,6 +156,7 @@ uint8_t program_process_command_and_invalidate(void) {
 	char *buf = usart_command, *endptr = NULL;
 	uint8_t invalidate_program = 0;
 
+	printf_P(PSTR("% "));
 	if (buf[0] == '\0' || buf[0] == '\n' || buf[0] == '\r' || buf[0] == ' ' || buf[0] == '\t') {
 		usart_command_available = 0;
 		return;
@@ -296,8 +301,24 @@ uint8_t program_process_command_and_invalidate(void) {
 		} else {
 		printf_P(PSTR("currently in programming mode!\nERROR\n"));
 		}
+	} else if (strncmp(usart_command, PROGRAM_COMMAND_LHZEN, PROGRAM_COMMAND_LHZEN_LENGTH) == 0) {
+		buf = &usart_command[PROGRAM_COMMAND_LHZEN_LENGTH];
+		uint16_t lhz_enable = strtoul(buf, &endptr, 10);
+		if (*buf != endptr) {
+			uint16_t location = PROGRAM_ICP_HZ_ENABLE_LOCATION;
+			printf_P(PSTR("light frequency HZ enable threshold = %" PRIu16 "\n"), lhz_enable);
+			eeprom_update_word((uint16_t *)location, lhz_enable);
+			program_icp_hz_enable = lhz_enable;
+			invalidate_program = 1;
+			printf_P(PSTR("OK\n"));
+		} else {
+			printf_P(PSTR("invalid light frequency Hz enable threshold\nERROR\n"));
+		}
 	} else if (strncmp(usart_command, PROGRAM_COMMAND_LHZ, PROGRAM_COMMAND_LHZ_LENGTH) == 0) {
 		printf_P(PSTR("light frequency:\t%d\n"), icp_hz);
+		printf_P(PSTR("OK\n"));
+	} else if (strncmp(usart_command, PROGRAM_COMMAND_DUMP, PROGRAM_COMMAND_DUMP_LENGTH) == 0) {
+		printf_P(PSTR("not implemented\n"));
 		printf_P(PSTR("OK\n"));
 	} else {
 		printf_P(PSTR("unrecognized command\nERROR\n"));
