@@ -154,30 +154,71 @@ void program_write_step(uint16_t step, uint8_t rgb[3], uint16_t delay_in_ms) {
 //#define PROGRAM_COMMAND__LENGTH
 
 void program_command_available(void) {
+	char *buf = usart_command, *endptr = NULL;
+
+	if (buf[0] == '\0' || buf[0] == '\n' || buf[0] == '\r' || buf[0] == ' ' || buf[0] == '\t') {
+		usart_command_available = 0;
+		return;
+	}
+	
 	if (strncmp(usart_command, PROGRAM_COMMAND_STOP, PROGRAM_COMMAND_STOP_LENGTH) == 0) {
 		program_state = PROGRAM_STOP;
 		printf_P(PSTR("OK\n"));
 	} else if (strncmp(usart_command, PROGRAM_COMMAND_PROGRAMMING_MODE, PROGRAM_COMMAND_PROGRAMMING_MODE_LENGTH) == 0) {
 		program_state = PROGRAM_PROGRAMMING;
+		rgb_set(0, 0, 0);
 		printf_P(PSTR("OK\n"));
 	} else if (strncmp(usart_command, PROGRAM_COMMAND_RUN, PROGRAM_COMMAND_RUN_LENGTH) == 0) {
 		program_state = PROGRAM_RUN;
 		printf_P(PSTR("OK\n"));
 	} else if (strncmp(usart_command, PROGRAM_COMMAND_LENGTH, PROGRAM_COMMAND_LENGTH_LENGTH) == 0) {
 		if (program_state == PROGRAM_PROGRAMMING) {
-			printf_P(PSTR("OK\n"));
+			buf = &usart_command[PROGRAM_COMMAND_LENGTH_LENGTH];
+			uint16_t steps = strtoul(buf, &endptr, 10);
+			if (*buf != endptr) {
+				uint16_t location = PROGRAM_START;
+				printf_P(PSTR("program steps = %" PRIu16 "\n"), steps);
+				eeprom_update_word((uint16_t *)location, steps);
+				printf_P(PSTR("OK\n"));
+			} else {
+				printf_P(PSTR("invalid program length\nERROR\n"));
+			}
 		} else {
 			printf_P(PSTR("not in programming mode!\nERROR\n"));
 		}
 	} else if (strncmp(usart_command, PROGRAM_COMMAND_STEP, PROGRAM_COMMAND_STEP_LENGTH) == 0) {
 		if (program_state == PROGRAM_PROGRAMMING) {
+			buf = &usart_command[PROGRAM_COMMAND_STEP_LENGTH];
 			printf_P(PSTR("OK\n"));
 		} else {
 			printf_P(PSTR("not in programming mode!\nERROR\n"));
 		}
 	} else if (strncmp(usart_command, PROGRAM_COMMAND_RGB, PROGRAM_COMMAND_RGB_LENGTH) == 0) {
 		if (program_state == PROGRAM_STOP) {
-			printf_P(PSTR("OK\n"));
+			buf = &usart_command[PROGRAM_COMMAND_RGB_LENGTH];
+			uint8_t rgb[3], parse_error = 0;
+			rgb[0] = strtoul(buf, &endptr, 10);
+			if (*buf == endptr) {
+				printf_P(PSTR("unable to parse RED value\n"));
+				parse_error = 1;
+			}
+			buf = endptr;
+			rgb[1] = strtoul(buf, &endptr, 10);
+			if (*buf == endptr) {
+				printf_P(PSTR("unable to parse GREEN value\n"));
+				parse_error = 1;
+			}
+			rgb[2] = strtoul(buf, &endptr, 10);
+			if (*buf == endptr) {
+				printf_P(PSTR("unable to parse BLUE value\n"));
+				parse_error = 1;
+			}
+			if (!parse_error) {
+				rgb_set(rgb[0], rgb[1], rgb[2]);
+				printf_P(PSTR("OK\n"));
+			} else {
+				printf_P(PSTR("ERROR\n"));
+			}
 		} else {
 			printf_P(PSTR("currently running program!\nERROR\n"));
 		}
@@ -192,8 +233,6 @@ void program_command_available(void) {
 	} else if (strncmp(usart_command, PROGRAM_COMMAND_LHZ, PROGRAM_COMMAND_LHZ_LENGTH) == 0) {
 		printf_P(PSTR("light frequency:\t%d\n"), icp_hz);
 		printf_P(PSTR("OK\n"));
-	} else if (isspace(usart_command)) {
-		// noop
 	} else {
 		printf_P(PSTR("unrecognized command\nERROR\n"));
 	}
