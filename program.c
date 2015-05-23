@@ -24,14 +24,18 @@ extern volatile char usart_command[BUFFER_SIZE];
 
 extern volatile uint16_t icp_hz, icp_events;
 
+uint16_t program_icp_hz_enable;
+
 void program_init(void) {
 	uint16_t preamble;
 
 	preamble = eeprom_read_word((const uint16_t *)PROGRAM_PREAMBLE_LOCATION);
 	if (preamble != PROGRAM_PREAMBLE) {
-		program_setup_default();
 		eeprom_update_word((uint16_t *)PROGRAM_PREAMBLE_LOCATION, PROGRAM_PREAMBLE);
+		eeprom_update_word((uint16_t *)PROGRAM_ICP_HZ_ENABLE_LOCATION, PROGRAM_DEFAULT_ICP_HZ_ENABLE);
+		program_setup_default();
 	}
+	program_icp_hz_enable = eeprom_read_word((const uint16_t *)PROGRAM_ICP_HZ_ENABLE_LOCATION);
 
 	program_state = PROGRAM_RUN;
 }
@@ -70,6 +74,12 @@ void program_run(void) {
 	uint16_t location = PROGRAM_START;
 	uint16_t i, steps, delay_in_ms;
 	uint8_t rgb[3];
+
+	// don't run the program if the light is too bright
+	if (icp_hz > program_icp_hz_enable) {
+		rgb_set(0, 0, 0);
+		goto PROGRAM_RUN_EXIT;
+	}
 
 	// don't start running a programming if the program is being written by an external source
 	// or if we are in program stop mode
