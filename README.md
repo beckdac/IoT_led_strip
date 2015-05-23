@@ -2,6 +2,29 @@
 Internet of things RGB led strip with AVR (atmega328) and ESP8266
 ---
 
+Support commands
+```
+	RESET					resets the device
+	FACTORY					installs a basic 43 color rainbow progression program
+	STOP					stop executing the current program
+	PROGRAM					enter programming mode
+	RUN						begin executing the current program
+	LENGTH <steps>			stores the total number of steps in a new program to the EEPROM
+							the device must be in PROGRAM mode
+	STEP <step> <red> <green> <blue> <delay in ms>
+							stores the color and time delay in milliseconds for a given
+							step to the EEPROM
+	RGB	<red> <green> <blue>
+							stop the current program and display the specified color
+	OFF						stop the current program and disable the LED strip
+	LHZ						display the current light to frequench value in Hz
+	LHZEN					set the threshold value for the program to begin execution
+							in HZ; the LHZ must be below this number to execute a program
+	DUMP					output the current program in PROGRAM mode statements
+```
+
+---
+
 Assumes the ESP is running my transparent bridge firmware: https://github.com/beckdac/ESP8266-transparent-bridge
 
 Burn an optiboot for 38400 baud (which works with internal oscillator).  Put this in your Makefile for optiboot in similar sections (from http://forum.arduino.cc/index.php?topic=124879.0):
