@@ -312,7 +312,21 @@ uint8_t program_process_command_and_invalidate(void) {
 		printf_P(PSTR("light frequency:\t%d\n"), icp_hz);
 		printf_P(PSTR("OK\n"));
 	} else if (strncmp(usart_command, PROGRAM_COMMAND_DUMP, PROGRAM_COMMAND_DUMP_LENGTH) == 0) {
-		printf_P(PSTR("not implemented\n"));
+		uint16_t location = PROGRAM_START;
+		uint16_t i, steps, delay_in_ms;
+		uint8_t rgb[3];
+		printf_P(PSTR("\nPROGRAM\n"));
+		steps = eeprom_read_word((uint16_t *)location);
+		location += sizeof(uint16_t);
+		printf_P(PSTR("LENGTH %d\n"), steps);
+		for (i = 0; i < steps; ++i) {
+			eeprom_read_block(&rgb, (void *)location, 3 * sizeof(uint8_t));
+			location += 3 * sizeof(uint8_t);
+			delay_in_ms = eeprom_read_word((uint16_t *)location);
+			location += sizeof(uint16_t);
+			printf_P(PSTR("STEP\t%d\t%d\t%d\t%d\t%d\n"), i, rgb[0], rgb[1], rgb[2], delay_in_ms);
+		}
+		printf_P(PSTR("RUN\n\n"));
 		printf_P(PSTR("OK\n"));
 	} else {
 		printf_P(PSTR("unrecognized command\nERROR\n"));
