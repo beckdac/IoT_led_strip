@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <string.h>
 
 #include "global.h"
 #include "program.h"
@@ -131,8 +132,64 @@ void program_write_step(uint16_t step, uint8_t rgb[3], uint16_t delay_in_ms) {
 	printf_P(PSTR("program delay = %" PRIu16 "\n"), delay_in_ms);
 }
 
+#define PROGRAM_COMMAND_STOP "STOP"
+#define PROGRAM_COMMAND_STOP_LENGTH 4
+#define PROGRAM_COMMAND_PROGRAMMING_MODE "PROGRAM"
+#define PROGRAM_COMMAND_PROGRAMMING_MODE_LENGTH 7
+#define PROGRAM_COMMAND_RUN "RUN"
+#define PROGRAM_COMMAND_RUN_LENGTH 3
+#define PROGRAM_COMMAND_LENGTH "LENGTH"
+#define PROGRAM_COMMAND_LENGTH_LENGTH 6
+#define PROGRAM_COMMAND_STEP "STEP"
+#define PROGRAM_COMMAND_STEP_LENGTH 4
+#define PROGRAM_COMMAND_RGB "RGB"
+#define PROGRAM_COMMAND_RGB_LENGTH 3
+#define PROGRAM_COMMAND_OFF "OFF"
+#define PROGRAM_COMMAND_OFF_LENGTH 3
+//#define PROGRAM_COMMAND_
+//#define PROGRAM_COMMAND__LENGTH
+
 void program_command_available(void) {
-	printf_P(PSTR("command: %s\n"), usart_command);
+	if (strncmp(usart_command, PROGRAM_COMMAND_STOP, PROGRAM_COMMAND_STOP_LENGTH) == 0) {
+		program_state = PROGRAM_STOP;
+		printf_P(PSTR("OK\n"));
+	} else if (strncmp(usart_command, PROGRAM_COMMAND_PROGRAMMING_MODE, PROGRAM_COMMAND_PROGRAMMING_MODE_LENGTH) == 0) {
+		program_state = PROGRAM_PROGRAMMING;
+		printf_P(PSTR("OK\n"));
+	} else if (strncmp(usart_command, PROGRAM_COMMAND_RUN, PROGRAM_COMMAND_RUN_LENGTH) == 0) {
+		program_state = PROGRAM_RUN;
+		printf_P(PSTR("OK\n"));
+	} else if (strncmp(usart_command, PROGRAM_COMMAND_LENGTH, PROGRAM_COMMAND_LENGTH_LENGTH) == 0) {
+		if (program_state == PROGRAM_PROGRAMMING) {
+			printf_P(PSTR("OK\n"));
+		} else {
+			printf_P(PSTR("not in programming mode!\nERROR\n"));
+		}
+	} else if (strncmp(usart_command, PROGRAM_COMMAND_STEP, PROGRAM_COMMAND_STEP_LENGTH) == 0) {
+		if (program_state == PROGRAM_PROGRAMMING) {
+			printf_P(PSTR("OK\n"));
+		} else {
+			printf_P(PSTR("not in programming mode!\nERROR\n"));
+		}
+	} else if (strncmp(usart_command, PROGRAM_COMMAND_RGB, PROGRAM_COMMAND_RGB_LENGTH) == 0) {
+		if (program_state == PROGRAM_STOP) {
+			printf_P(PSTR("OK\n"));
+		} else {
+			printf_P(PSTR("currently running program!\nERROR\n"));
+		}
+	} else if (strncmp(usart_command, PROGRAM_COMMAND_OFF, PROGRAM_COMMAND_OFF_LENGTH) == 0) {
+		if (program_state != PROGRAM_PROGRAMMING) {
+			rgb_set(0, 0, 0);
+			printf_P(PSTR("OK\n"));
+		} else {
+		printf_P(PSTR("currently in programming mode!\nERROR\n"));
+		}
+	} else if (isspace(usart_command)) {
+		// noop
+	} else {
+		printf_P(PSTR("unrecognized command\nERROR\n"));
+	}
+// } else if (strncmp(usart_command, PROGRAM_COMMAND_, PROGRAM_COMMAND__LENGTH) == 0) {
 
 	usart_command_available = 0;
 }
