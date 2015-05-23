@@ -4,23 +4,25 @@ Internet of things RGB led strip with AVR (atmega328) and ESP8266
 
 Support commands
 ```
-	RESET					resets the device
-	FACTORY					installs a basic 43 color rainbow progression program
-	STOP					stop executing the current program
-	PROGRAM					enter programming mode
-	RUN						begin executing the current program
-	LENGTH <steps>			stores the total number of steps in a new program to the EEPROM
-							the device must be in PROGRAM mode
+	RESET		resets the device
+	FACTORY		installs a basic 43 color rainbow progression program
+	STOP		stop executing the current program
+	PROGRAM		enter programming mode
+	RUN			begin executing the current program
+	LENGTH <steps>
+				stores the total number of steps in a new program to the EEPROM
+				the device must be in PROGRAM mode
 	STEP <step> <red> <green> <blue> <delay in ms>
-							stores the color and time delay in milliseconds for a given
-							step to the EEPROM
+				stores the color and time delay in milliseconds for a given
+				step to the EEPROM
 	RGB	<red> <green> <blue>
-							stop the current program and display the specified color
-	OFF						stop the current program and disable the LED strip
-	LHZ						display the current light to frequench value in Hz
-	LHZEN					set the threshold value for the program to begin execution
-							in HZ; the LHZ must be below this number to execute a program
-	DUMP					output the current program in PROGRAM mode statements
+				stop the current program and display the specified color
+	OFF			stop the current program and disable the LED strip
+	LHZ			display the current light to frequench value in Hz
+	LHZEN		set the threshold value for the program to begin execution
+				in HZ; the LHZ must be below this number to execute a program
+	DUMP		output the current program in PROGRAM mode statements
+	STATUS		output the values of status registers and other settings
 ```
 
 ---
@@ -86,3 +88,61 @@ Send application to chip:
    ip=192.168.1.23 # replace with your own
    file=led_strip.hex
    ./reset_and_upload $ip led_strip.hex 
+
+Example interaction:
+```
+telnet led_strip
+Trying 192.168.1.23...
+Connected to led_strip.lan.
+Escape character is '^]'.
+
+PROGRAM
+OK
+LENGTH 4
+program steps = 4
+OK
+STEP 0 255 0 0 1000
+program step  = 0
+program rgb   = 255	0	0
+program delay = 1000
+OK
+STEP 1 200 200 200 1000
+program step  = 1
+program rgb   = 200	200	200
+program delay = 1000
+OK
+STEP 2 0 0 255 1000
+program step  = 2
+program rgb   = 0	0	255
+program delay = 1000
+OK
+STEP 3 0 0 0 1000
+program step  = 3
+program rgb   = 0	0	0
+program delay = 1000
+OK
+RUN
+OK
+DUMP
+
+PROGRAM
+LENGTH 4
+STEP	0	255	0	0	1000
+STEP	1	200	200	200	1000
+STEP	2	0	0	255	1000
+STEP	3	0	0	0	1000
+RUN
+
+OK
+STATUS
+state: run
+command overflows: 0
+RX buffer overflows: 0
+TX buffer overflows: 0
+light frequency:	15
+light frequency enable threshold:	100
+OK
+^]
+telnet> c
+Connection closed.
+```

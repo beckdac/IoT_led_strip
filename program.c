@@ -23,6 +23,7 @@ extern volatile uint8_t usart_command_available;
 extern volatile char usart_command[BUFFER_SIZE];
 
 extern volatile uint16_t icp_hz, icp_events;
+extern usart_t usart;
 
 uint16_t program_icp_hz_enable;
 
@@ -143,6 +144,8 @@ PROGRAM_RUN_EXIT:
 #define PROGRAM_COMMAND_LHZEN_LENGTH 5
 #define PROGRAM_COMMAND_DUMP "DUMP"
 #define PROGRAM_COMMAND_DUMP_LENGTH 4
+#define PROGRAM_COMMAND_STATUS "STATUS"
+#define PROGRAM_COMMAND_STATUS_LENGTH 6
 //#define PROGRAM_COMMAND_
 //#define PROGRAM_COMMAND__LENGTH
 
@@ -327,6 +330,17 @@ uint8_t program_process_command_and_invalidate(void) {
 			printf_P(PSTR("STEP\t%d\t%d\t%d\t%d\t%d\n"), i, rgb[0], rgb[1], rgb[2], delay_in_ms);
 		}
 		printf_P(PSTR("RUN\n\n"));
+		printf_P(PSTR("OK\n"));
+	} else if (strncmp(usart_command, PROGRAM_COMMAND_STATUS, PROGRAM_COMMAND_STATUS_LENGTH) == 0) {
+//		printf_P(PSTR(""),);
+		printf_P(PSTR("state: %s\n"), (program_state == PROGRAM_STOP ? "stop" : \
+			(program_state == PROGRAM_RUN ? "run" : \
+			(program_state == PROGRAM_PROGRAMMING ? "program" : "unknown"))));
+		printf_P(PSTR("command overflows: %d\n"), usart.command_overflows);
+		printf_P(PSTR("RX buffer overflows: %d\n"), usart.RX_buffer.overflows);
+		printf_P(PSTR("TX buffer overflows: %d\n"), usart.TX_buffer.overflows);
+		printf_P(PSTR("light frequency:\t%d\n"), icp_hz);
+		printf_P(PSTR("light frequency enable threshold:\t%d\n"), program_icp_hz_enable);
 		printf_P(PSTR("OK\n"));
 	} else {
 		printf_P(PSTR("unrecognized command\nERROR\n"));

@@ -21,4 +21,5 @@ END {
 	printf("send \"RUN\\n\"\n");
 	printf("expect \"OK\"\n");
 	printf("send \"DUMP\\n\"\n");
+	printf("expect \"OK\"\n");
 }
