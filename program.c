@@ -115,25 +115,8 @@ PROGRAM_RUN_EXIT:
 #endif
 }
 
-void program_write_steps(uint16_t steps) {
-	if (program_state == PROGRAM_PROGRAMMING) {
-		uint16_t location = PROGRAM_START;
-		printf_P(PSTR("program steps = %" PRIu16 "\n"), steps);
-		eeprom_update_word((uint16_t *)location, steps);
-	} else
-		printf_P(PSTR("unable to write steps: not in programming mode\n"));
-}
-
-void program_write_step(uint16_t step, uint8_t rgb[3], uint16_t delay_in_ms) {
-	uint16_t location = PROGRAM_STEP_LOCATION(step);
-	eeprom_update_block(rgb, (void *)location, 3 * sizeof(uint8_t));
-	location += 3 * sizeof(uint8_t);
-	eeprom_update_word((uint16_t *)location, delay_in_ms);
-	printf_P(PSTR("program step  = %" PRIu16 "\n"), step);
-	printf_P(PSTR("program rgb   = %u\t%u\t%u\n"), rgb[0], rgb[1], rgb[2]);
-	printf_P(PSTR("program delay = %" PRIu16 "\n"), delay_in_ms);
-}
-
+#define PROGRAM_COMMAND_RESET "RESET"
+#define PROGRAM_COMMAND_RESET_LENGTH 5
 #define PROGRAM_COMMAND_STOP "STOP"
 #define PROGRAM_COMMAND_STOP_LENGTH 4
 #define PROGRAM_COMMAND_PROGRAMMING_MODE "PROGRAM"
@@ -161,7 +144,12 @@ void program_command_available(void) {
 		return;
 	}
 	
-	if (strncmp(usart_command, PROGRAM_COMMAND_STOP, PROGRAM_COMMAND_STOP_LENGTH) == 0) {
+	if (strncmp(usart_command, PROGRAM_COMMAND_RESET, PROGRAM_COMMAND_RESET_LENGTH) == 0) {
+		printf_P(PSTR("OK\n"));
+		// call the watchdog timer to reset in 15ms
+		wdt_enable(WDTO_15MS);
+		while (1) {};
+	} else if (strncmp(usart_command, PROGRAM_COMMAND_STOP, PROGRAM_COMMAND_STOP_LENGTH) == 0) {
 		program_state = PROGRAM_STOP;
 		printf_P(PSTR("OK\n"));
 	} else if (strncmp(usart_command, PROGRAM_COMMAND_PROGRAMMING_MODE, PROGRAM_COMMAND_PROGRAMMING_MODE_LENGTH) == 0) {
@@ -189,12 +177,67 @@ void program_command_available(void) {
 	} else if (strncmp(usart_command, PROGRAM_COMMAND_STEP, PROGRAM_COMMAND_STEP_LENGTH) == 0) {
 		if (program_state == PROGRAM_PROGRAMMING) {
 			buf = &usart_command[PROGRAM_COMMAND_STEP_LENGTH];
+			uint8_t rgb[3], parse_error = 0;
+			uint16_t step, delay_in_ms;
+			buf = endptr;
+			step = strtoul(buf, &endptr, 10);
+			if (*buf == endptr) {
+				printf_P(PSTR("unable to parse STEP value\n"));
+				parse_error = 1;
+			}
+			buf = endptr;
+			rgb[0] = strtoul(buf, &endptr, 10);
+			if (*buf == endptr) {
+				printf_P(PSTR("unable to parse RED value\n"));
+				parse_error = 1;
+			}
+			buf = endptr;
+			rgb[1] = strtoul(buf, &endptr, 10);
+			if (*buf == endptr) {
+				printf_P(PSTR("unable to parse GREEN value\n"));
+				parse_error = 1;
+			}
+			buf = endptr;
+			rgb[2] = strtoul(buf, &endptr, 10);
+			if (*buf == endptr) {
+				printf_P(PSTR("unable to parse BLUE value\n"));
+				parse_error = 1;
+			}
+			buf = endptr;
+			delay_in_ms = strtoul(buf, &endptr, 10);
+			if (*buf == endptr) {
+				printf_P(PSTR("unable to parse DELAY_IN_MS value\n"));
+				parse_error = 1;
+			} else if (delay_in_ms > 4000) {
+				printf_P(PSTR("delay_in_ms must be less than 4000 ms\n"));
+				parse_error = 1;
+			}
+			if (!parse_error) {
+    			uint16_t location = PROGRAM_STEP_LOCATION(step);
+				rgb_set(rgb[0], rgb[1], rgb[2]);
+    			eeprom_update_block(rgb, (void *)location, 3 * sizeof(uint8_t));
+    			location += 3 * sizeof(uint8_t);
+    			eeprom_update_word((uint16_t *)location, delay_in_ms);
+    			printf_P(PSTR("program step  = %" PRIu16 "\n"), step);
+    			printf_P(PSTR("program rgb   = %u\t%u\t%u\n"), rgb[0], rgb[1], rgb[2]);
+    			printf_P(PSTR("program delay = %" PRIu16 "\n"), delay_in_ms);
+				printf_P(PSTR("OK\n"));
+			} else {
+				printf_P(PSTR("ERROR\n"));
+			}
+		} else {
+			printf_P(PSTR("currently running program!\nERROR\n"));
+		}
+	} else if (strncmp(usart_command, PROGRAM_COMMAND_OFF, PROGRAM_COMMAND_OFF_LENGTH) == 0) {
+		if (program_state != PROGRAM_PROGRAMMING) {
+			program_state = PROGRAM_STOP;
+			rgb_set(0, 0, 0);
 			printf_P(PSTR("OK\n"));
 		} else {
 			printf_P(PSTR("not in programming mode!\nERROR\n"));
 		}
 	} else if (strncmp(usart_command, PROGRAM_COMMAND_RGB, PROGRAM_COMMAND_RGB_LENGTH) == 0) {
-		if (program_state == PROGRAM_STOP) {
+		if (program_state != PROGRAM_PROGRAMMING) {
 			buf = &usart_command[PROGRAM_COMMAND_RGB_LENGTH];
 			uint8_t rgb[3], parse_error = 0;
 			rgb[0] = strtoul(buf, &endptr, 10);
@@ -214,13 +257,14 @@ void program_command_available(void) {
 				parse_error = 1;
 			}
 			if (!parse_error) {
+				program_state = PROGRAM_STOP;
 				rgb_set(rgb[0], rgb[1], rgb[2]);
 				printf_P(PSTR("OK\n"));
 			} else {
 				printf_P(PSTR("ERROR\n"));
 			}
 		} else {
-			printf_P(PSTR("currently running program!\nERROR\n"));
+			printf_P(PSTR("currently in programming mode!\nERROR\n"));
 		}
 	} else if (strncmp(usart_command, PROGRAM_COMMAND_OFF, PROGRAM_COMMAND_OFF_LENGTH) == 0) {
 		if (program_state != PROGRAM_PROGRAMMING) {
