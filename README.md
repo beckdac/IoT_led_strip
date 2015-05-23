@@ -52,7 +52,9 @@ atmega328_384_8.build.variant=standard
 ```
 
 Then run
+```
    make atmega328_384_8
+```
 
 Only use ft232u if you have the FTDI cable configured as I do.  You probably want ft232r.  Here is the config for the ft232u which goes in your avrdude.conf (assumes avrdude 6.1):
 
@@ -73,21 +75,27 @@ If your avrdude has the broken ftdi_syncbb (won't chip erase), apply the patch f
 https://lists.nongnu.org/archive/html/avrdude-dev/2013-09/msg00160.html
 
 AVR 8Mhz internal oscillator, fuses: Low E2 High DC Ex 07
-Set with
+Set with:
+```
    lfuse=E2
    hfuse=DC
    efuse=07
    baud=1200
    sudo avrdude -c ft232u -p m328p -P ft0 -F -U lfuse:w:0x$lfuse:m -U hfuse:w:0x$hfuse:m -U efuse:w:0x$efuse:m -B $baud
+```
 
 Burn optiboot bootloader with:
+```
    file=~/optiboot/optiboot/bootloaders/optiboot/optiboot_atmega328_384_8.hex
    sudo avrdude -c ft232u -p m328p -P ft0 -F -e -U flash:w:${file}:i DONE
+```
 
-Send application to chip:
+Send application to chip over wifi+ESP8266:
+```
    ip=192.168.1.23 # replace with your own
    file=led_strip.hex
    ./reset_and_upload $ip led_strip.hex 
+```
 
 Example interaction:
 ```
