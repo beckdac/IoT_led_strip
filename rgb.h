@@ -29,7 +29,7 @@
 
 void rgb_init(void);
 void rgb_set(uint8_t red, uint8_t green, uint8_t blue);
-void rgb_set_governor(uint8_t govna);
+void rgb_set_ch(uint8_t ch, uint8_t value);
 void rgb_rainbow(void);
 void rgb_test(void);
 

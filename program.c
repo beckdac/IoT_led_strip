@@ -136,6 +136,12 @@ PROGRAM_RUN_EXIT:
 #define PROGRAM_COMMAND_STEP_LENGTH 4
 #define PROGRAM_COMMAND_RGB "RGB"
 #define PROGRAM_COMMAND_RGB_LENGTH 3
+#define PROGRAM_COMMAND_RED "RED"
+#define PROGRAM_COMMAND_RED_LENGTH 3
+#define PROGRAM_COMMAND_GREEN "GREEN"
+#define PROGRAM_COMMAND_GREEN_LENGTH 5
+#define PROGRAM_COMMAND_BLUE "BLUE"
+#define PROGRAM_COMMAND_BLUE_LENGTH 4
 #define PROGRAM_COMMAND_OFF "OFF"
 #define PROGRAM_COMMAND_OFF_LENGTH 3
 #define PROGRAM_COMMAND_LHZ "LHZ"
@@ -281,6 +287,66 @@ uint8_t program_process_command_and_invalidate(void) {
 			if (!parse_error) {
 				program_state = PROGRAM_STOP;
 				rgb_set(rgb[0], rgb[1], rgb[2]);
+				invalidate_program = 1;
+				printf_P(PSTR("OK\n"));
+			} else {
+				printf_P(PSTR("ERROR\n"));
+			}
+		} else {
+			printf_P(PSTR("currently in programming mode!\nERROR\n"));
+		}
+	} else if (strncmp(usart_command, PROGRAM_COMMAND_RED, PROGRAM_COMMAND_RED_LENGTH) == 0) {
+		if (program_state != PROGRAM_PROGRAMMING) {
+			buf = &usart_command[PROGRAM_COMMAND_RED_LENGTH];
+			uint8_t red, parse_error = 0;
+			red = strtoul(buf, &endptr, 10);
+			if (*buf == endptr) {
+				printf_P(PSTR("unable to parse RED value\n"));
+				parse_error = 1;
+			}
+			if (!parse_error) {
+				program_state = PROGRAM_STOP;
+				rgb_set_ch(0, red);
+				invalidate_program = 1;
+				printf_P(PSTR("OK\n"));
+			} else {
+				printf_P(PSTR("ERROR\n"));
+			}
+		} else {
+			printf_P(PSTR("currently in programming mode!\nERROR\n"));
+		}
+	} else if (strncmp(usart_command, PROGRAM_COMMAND_GREEN, PROGRAM_COMMAND_GREEN_LENGTH) == 0) {
+		if (program_state != PROGRAM_PROGRAMMING) {
+			buf = &usart_command[PROGRAM_COMMAND_GREEN_LENGTH];
+			uint8_t green, parse_error = 0;
+			green = strtoul(buf, &endptr, 10);
+			if (*buf == endptr) {
+				printf_P(PSTR("unable to parse GREEN value\n"));
+				parse_error = 1;
+			}
+			if (!parse_error) {
+				program_state = PROGRAM_STOP;
+				rgb_set_ch(1, green);
+				invalidate_program = 1;
+				printf_P(PSTR("OK\n"));
+			} else {
+				printf_P(PSTR("ERROR\n"));
+			}
+		} else {
+			printf_P(PSTR("currently in programming mode!\nERROR\n"));
+		}
+	} else if (strncmp(usart_command, PROGRAM_COMMAND_BLUE, PROGRAM_COMMAND_BLUE_LENGTH) == 0) {
+		if (program_state != PROGRAM_PROGRAMMING) {
+			buf = &usart_command[PROGRAM_COMMAND_BLUE_LENGTH];
+			uint8_t blue, parse_error = 0;
+			blue = strtoul(buf, &endptr, 10);
+			if (*buf == endptr) {
+				printf_P(PSTR("unable to parse BLUE value\n"));
+				parse_error = 1;
+			}
+			if (!parse_error) {
+				program_state = PROGRAM_STOP;
+				rgb_set_ch(2, blue);
 				invalidate_program = 1;
 				printf_P(PSTR("OK\n"));
 			} else {

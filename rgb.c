@@ -25,22 +25,14 @@ void rgb_init(void) {
 }
 
 void rgb_set(uint8_t red, uint8_t green, uint8_t blue) {
-	// rgb_governor is a governor measure
-	uint8_t rgb_governor;
-#if 0
-	if (icp_hz < 20)
-		rgb_governor = 255;
-	else {
-		float tmp = (255. - (((float)icp_hz - 20.) * 3.2));
-		rgb_governor = (uint8_t)(tmp < 0 ? 0 : tmp);
-	}
-#else
-	rgb_governor = 255;
-#endif
+	rgb[0] = red;
+	rgb[1] = green;
+	rgb[2] = blue;
+}
 
-	rgb[0] = (red < rgb_governor ? red : rgb_governor);
-	rgb[1] = (green < rgb_governor ? green : rgb_governor);
-	rgb[2] = (blue < rgb_governor ? blue : rgb_governor);
+void rgb_set_ch(uint8_t ch, uint8_t value) {
+	// skip the value check on ch for performance
+    rgb[ch] = value;
 }
 
 void rgb_rainbow(void) {
