@@ -17,6 +17,12 @@ Support commands
 				step to the EEPROM
 	RGB	<red> <green> <blue>
 				stop the current program and display the specified color
+  RED <red>
+        stop the current program and change the red channel PWM
+  GREEN <green>
+        stop the current program and change the green channel PWM
+  BLUE <blue>
+        stop the current program and change the blue channel PWM
 	OFF			stop the current program and disable the LED strip
 	LHZ			display the current light to frequench value in Hz
 	LHZEN		set the threshold value for the program to begin execution
