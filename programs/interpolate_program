@@ -1,0 +1,19 @@
+#!/bin/bash
+
+if [ "$#" -ne 2 ]
+then
+	echo "usage: $0 <program filename> <divisions>"
+	echo "example: $0 programs/red_white_blue.prg 10"
+	exit 1
+fi
+
+program=$1
+divisions=$2
+
+if [ ! -e $program ]
+then
+	echo "program file $program does not exist"
+	exit 1
+fi
+
+awk -v divisions=$divisions -f $0.awk $program
