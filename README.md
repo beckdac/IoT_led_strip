@@ -160,3 +160,46 @@ OK
 telnet> c
 Connection closed.
 ```
+
+
+---
+
+The *programs* directory contains partially formatted files for upload.  They do not contain the LENGTH header element.  The shell script *program* (relies on awk and expect) will take one the the *.prg* files in *programs*, add the LENGTH and send it over the wifi to an led_strip host (name should be supplied).  E.g.
+```
+./program led_strip.lan programs/winter.prg
+```
+
+If you want to slow down a program or just use linear interprolation between colors to smooth color transitions, there is the *interpolate_program* bash script (also relies on awk) that will do just that.  Takes the name of a program and the number of interpolated points per step transition to insert.  E.g. to add 4 transitions between each color for winter.prg
+```
+./interpolate_program programs/winter.prg 4
+```
+
+Which would produce something like:
+
+```
+STEP	29	141	180	750
+STEP	58	143	182	750
+STEP	87	145	185	750
+STEP	116	147	187	750
+STEP	146	150	190	750
+STEP	151	157	192	750
+STEP	156	165	195	750
+STEP	161	172	197	750
+STEP	166	180	200	750
+STEP	149	182	197	750
+STEP	133	185	195	750
+STEP	116	187	192	750
+STEP	100	190	190	750
+STEP	85	167	202	750
+STEP	70	145	215	750
+STEP	55	122	227	750
+STEP	40	100	240	750
+```
+
+The intended use is in the following pattern:
+
+```
+./interpolate_program programs/winter.prg 10 > /tmp/a
+./program led_strip.lan /tmp/a
+```
+
